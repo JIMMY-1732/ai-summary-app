@@ -1,5 +1,4 @@
 import type { SummaryOptions } from '@/lib/schemas';
-import { extractPdfTextWithOcr } from './pdf';
 import { generateMarkdownSummary } from './ai';
 import { getSupabaseAdminClient } from './supabase-admin';
 import { getSupabaseEnv } from './env';
@@ -96,6 +95,7 @@ export async function uploadDocument(params: {
   let extractedText = '';
   let extractionError: string | null = null;
   try {
+    const { extractPdfTextWithOcr } = await import('./pdf');
     extractedText = await extractPdfTextWithOcr(params.buffer);
   } catch (error) {
     extractionError = error instanceof Error ? error.message : 'Unknown extraction error';
@@ -234,6 +234,7 @@ export async function extractDocumentTextById(documentId: string) {
   let extractedText = '';
   let extractionError: string | null = null;
   try {
+    const { extractPdfTextWithOcr } = await import('./pdf');
     extractedText = await extractPdfTextWithOcr(buffer);
   } catch (error) {
     extractionError = error instanceof Error ? error.message : 'Unknown extraction error';
