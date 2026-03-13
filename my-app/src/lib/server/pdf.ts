@@ -6,12 +6,6 @@ type LegacyPdfParseResult = {
   text?: string;
 };
 
-type CanvasGlobals = typeof globalThis & {
-  DOMMatrix?: unknown;
-  ImageData?: unknown;
-  Path2D?: unknown;
-};
-
 function getOcrLanguage() {
   return process.env.OCR_LANGUAGE ?? 'eng';
 }
@@ -61,24 +55,25 @@ async function extractPdfTextByParser(buffer: Buffer): Promise<string> {
 }
 
 async function ensureNodePdfGlobals() {
-  const globalScope = globalThis as CanvasGlobals;
+  const globalScope = globalThis as Record<string, unknown>;
 
   if (globalScope.DOMMatrix && globalScope.ImageData && globalScope.Path2D) {
     return;
   }
 
-  const canvasModule = (await import('@napi-rs/canvas')) as Record<string, unknown>;
+  const canvasModule = await import('@napi-rs/canvas');
+  const canvasExports = canvasModule as Record<string, unknown>;
 
-  if (!globalScope.DOMMatrix && canvasModule.DOMMatrix) {
-    globalScope.DOMMatrix = canvasModule.DOMMatrix;
+  if (!globalScope.DOMMatrix && canvasExports.DOMMatrix) {
+    globalScope.DOMMatrix = canvasExports.DOMMatrix;
   }
 
-  if (!globalScope.ImageData && canvasModule.ImageData) {
-    globalScope.ImageData = canvasModule.ImageData;
+  if (!globalScope.ImageData && canvasExports.ImageData) {
+    globalScope.ImageData = canvasExports.ImageData;
   }
 
-  if (!globalScope.Path2D && canvasModule.Path2D) {
-    globalScope.Path2D = canvasModule.Path2D;
+  if (!globalScope.Path2D && canvasExports.Path2D) {
+    globalScope.Path2D = canvasExports.Path2D;
   }
 }
 
